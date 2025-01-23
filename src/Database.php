@@ -17,28 +17,33 @@ class Database
     /**
      * Array of connection arguments
      * 
-     * @param array $args
+     * @param array|PDO $args
      */
     public function __construct($args)
     {
-        if (!isset($args['database'])) {
-            throw new Exception('&args[\'database\'] is required');
+        if ($args instanceof PDO) {
+            // just a wrapper around another PDO existing object
+            $this->db = $args;
+        } else {
+            if (!isset($args['database'])) {
+                throw new Exception('&args[\'database\'] is required');
+            }
+    
+            if (!isset($args['username'])) {
+                throw new Exception('&args[\'username\']  is required');
+            }
+    
+            $type     = isset($args['type']) ? $args['type'] : 'mysql';
+            $host     = isset($args['host']) ? $args['host'] : 'localhost';
+            $charset  = isset($args['charset']) ? $args['charset'] : 'utf8';
+            $port     = isset($args['port']) ? 'port=' . $args['port'] . ';' : '';
+            $password = isset($args['password']) ? $args['password'] : '';
+            $database = $args['database'];
+            $username = $args['username'];
+    
+            $this->db = new PDO("$type:host=$host;$port" . "dbname=$database;charset=$charset", $username, $password);
+            $this->db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         }
-
-        if (!isset($args['username'])) {
-            throw new Exception('&args[\'username\']  is required');
-        }
-
-        $type     = isset($args['type']) ? $args['type'] : 'mysql';
-        $host     = isset($args['host']) ? $args['host'] : 'localhost';
-        $charset  = isset($args['charset']) ? $args['charset'] : 'utf8';
-        $port     = isset($args['port']) ? 'port=' . $args['port'] . ';' : '';
-        $password = isset($args['password']) ? $args['password'] : '';
-        $database = $args['database'];
-        $username = $args['username'];
-
-        $this->db = new PDO("$type:host=$host;$port" . "dbname=$database;charset=$charset", $username, $password);
-        $this->db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     }
 
     /**
